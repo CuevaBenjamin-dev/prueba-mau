@@ -34,7 +34,7 @@ function submit() {
       <p class="mt-3 text-sm leading-6 text-slate-300">Ingresa un ID de personaje entre 1 y 83. Consultaremos SWAPI y añadiremos el registro a tu archivo.</p>
       <form class="mt-6" @submit.prevent="submit">
         <label for="swapi-id" class="mb-2 block text-sm font-semibold text-slate-100">ID de SWAPI</label>
-        <input id="swapi-id" ref="input" v-model="form.id" type="number" min="1" max="83" step="1" required :aria-invalid="Boolean(form.errors.id)" :aria-describedby="form.errors.id ? 'swapi-error' : undefined" placeholder="Ej. 1" class="galaxy-field" />
+        <input id="swapi-id" ref="input" v-model="form.id" type="number" inputmode="numeric" min="1" max="83" step="1" required :aria-invalid="Boolean(form.errors.id)" :aria-describedby="form.errors.id ? 'swapi-error' : undefined" placeholder="Ej. 1" class="galaxy-field" />
         <p v-if="form.errors.id" id="swapi-error" class="mt-2 text-sm font-medium text-rose-200" role="alert">{{ form.errors.id }}</p>
         <div class="mt-7 flex flex-col-reverse gap-3 border-t border-sky-200/15 pt-5 sm:flex-row sm:justify-end">
           <button type="button" :disabled="form.processing" class="galaxy-button galaxy-button--outline" @click="close">Cancelar</button>
