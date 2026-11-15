@@ -134,7 +134,8 @@ class SwapiService
 
         $name = trim($planet['name']);
 
-        return $name !== '' && mb_strlen($name) <= 100 ? $name : null;
+        return $name !== '' && ! in_array(strtolower($name), ['unknown', 'n/a', 'none'], true)
+            && mb_strlen($name) <= 100 ? $name : null;
     }
 
     private function validOptionalText(mixed $value): bool
