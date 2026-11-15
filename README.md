@@ -7,7 +7,7 @@ Aplicación web local para registrar, consultar, actualizar, eliminar e importar
 - Nombre: **[Completar nombre completo]**
 - Email: **[Completar email]**
 - Teléfono: **[Completar teléfono]**
-- Usuario de GitHub/GitLab: **[Completar usuario]**
+- Usuario de GitHub: **CuevaBenjamin-dev**
 
 ## Requisitos del Sistema
 
@@ -19,10 +19,10 @@ Versiones verificadas en el entorno de desarrollo: PHP **8.3.36**, Composer **2.
 
 ## Instalación
 
-1. Clonar el repositorio cuando se haya publicado:
+1. Clonar el repositorio:
 
    ```bash
-   git clone [URL_DEL_REPOSITORIO]
+   git clone https://github.com/CuevaBenjamin-dev/prueba-mau.git
    cd star-wars-personajes
    ```
 
@@ -80,7 +80,7 @@ Versiones verificadas en el entorno de desarrollo: PHP **8.3.36**, Composer **2.
 - Duplicados bloqueados antes de la solicitud externa y mediante índice UNIQUE en MySQL. 404, 5xx, timeout, fallo de conexión y respuestas incompatibles devuelven mensajes controlados sin crear registros.
 - Componentes Vue reutilizables: `AppLayout`, `PersonajeForm`, `PersonajeTable` e `ImportModal`.
 
-No se implementaron funcionalidades bonus. No hay autenticación, API REST separada, Docker obligatorio ni despliegue.
+No se implementaron funcionalidades bonus. No hay autenticación, API REST separada ni despliegue. Esta aplicación se ejecuta localmente con PHP y MySQL; no tiene Dockerfile ni archivo Compose y no inicia contenedores propios.
 
 ## Tecnologías
 
@@ -92,7 +92,7 @@ Laravel 12 y PHP 8.3 en el servidor; MySQL 8 con Eloquent; Vue 3 con Composition
 - Los tests de SWAPI usan `Http::fake()` y `Http::preventStrayRequests()`; no consumen la API real. Durante la revisión manual en navegador, SWAPI no estuvo disponible y el modal mostró el mensaje controlado; la creación y edición locales siguieron funcionando.
 - El texto `unknown` y `n/a` no son equivalentes en significado. El esquema local admite solo `masculino`, `femenino` y `n/a`; por decisión funcional aprobada, ambos valores externos se representan como `n/a`.
 - La advertencia de trazabilidad `RF-PER-015: sin caso de uso` en MODULA no elimina las seis rutas CRUD. El proyecto funcional vigente es la revisión 97, con 35 requisitos y 5 casos de uso aprobados.
-- Este repositorio todavía **no se ha publicado**. Antes de compartirlo, completar los datos del candidato, revisar la declaración de IA y los marcadores de experiencia personal, comprobar que `.env` no se incluya, repetir la instalación y las pruebas desde un clon limpio y crear el repositorio público. El envío por email queda pendiente de autorización.
+- Antes de entregar el enlace a MAU, completar los datos del candidato, revisar la declaración de IA y los marcadores de experiencia personal, comprobar que `.env` no se incluya y repetir la instalación y las pruebas desde un clon limpio. El envío por email queda pendiente de autorización.
 
 ## Decisiones Técnicas
 
