@@ -23,7 +23,7 @@ Versiones verificadas en el entorno de desarrollo: PHP **8.3.36**, Composer **2.
 
    ```bash
    git clone https://github.com/CuevaBenjamin-dev/prueba-mau.git
-   cd star-wars-personajes
+   cd prueba-mau
    ```
 
    En la entrega local actual, entrar directamente en la carpeta `star-wars-personajes`.
