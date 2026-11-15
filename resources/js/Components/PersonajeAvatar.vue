@@ -22,6 +22,17 @@ watch(source, () => { failed.value = false; });
       <span class="holo-avatar__mark">✦</span>
     </div>
     <img
+      v-if="showImage && !large"
+      :src="source"
+      alt=""
+      aria-hidden="true"
+      class="holo-portrait__backdrop"
+      loading="lazy"
+      decoding="async"
+      referrerpolicy="no-referrer"
+      @error="failed = true"
+    />
+    <img
       v-if="showImage"
       :src="source"
       :alt="`Retrato de ${personaje.nombre}`"

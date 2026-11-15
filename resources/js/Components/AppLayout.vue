@@ -5,11 +5,12 @@ import { Link } from '@inertiajs/vue3';
 <template>
   <div class="galaxy-app min-h-screen">
     <header class="galaxy-header">
-      <div class="mx-auto flex w-full max-w-[1900px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        <Link href="/personajes" class="group flex min-w-0 items-center gap-3 text-slate-100 no-underline sm:gap-4">
+      <div class="galaxy-header__inner mx-auto w-full max-w-[1900px] gap-4 px-4 py-3 sm:px-6 lg:px-8">
+        <Link href="/personajes" class="galaxy-header__brand group flex min-w-0 items-center gap-3 text-slate-100 no-underline sm:gap-4">
           <span class="galaxy-emblem" aria-hidden="true">✦</span>
-          <span class="min-w-0"><strong class="block truncate text-base font-extrabold tracking-tight sm:text-xl">Archivo Galáctico</strong><small class="block truncate text-[10px] font-semibold tracking-[.25em] text-sky-300 uppercase sm:text-xs">Personajes Star Wars</small></span>
+          <span class="min-w-0"><strong class="block truncate text-base font-extrabold tracking-tight sm:text-xl">Archivo Galáctico</strong><small class="galaxy-header__subtitle block truncate text-[10px] font-semibold tracking-[.25em] text-sky-300 uppercase sm:text-xs">Personajes Star Wars</small></span>
         </Link>
+        <span class="galaxy-header__title">PERSONAJES STAR WARS</span>
         <span class="galaxy-header__badge hidden rounded-full px-4 py-1.5 text-xs font-semibold text-sky-100 sm:inline">MAU · Prueba técnica</span>
       </div>
     </header>
