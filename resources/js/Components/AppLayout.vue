@@ -5,7 +5,7 @@ import { Link } from '@inertiajs/vue3';
 <template>
   <div class="galaxy-app min-h-screen">
     <header class="galaxy-header">
-      <div class="mx-auto flex w-full max-w-[1660px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+      <div class="mx-auto flex w-full max-w-[1900px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/personajes" class="group flex min-w-0 items-center gap-3 text-slate-100 no-underline sm:gap-4">
           <span class="galaxy-emblem" aria-hidden="true">✦</span>
           <span class="min-w-0"><strong class="block truncate text-base font-extrabold tracking-tight sm:text-xl">Archivo Galáctico</strong><small class="block truncate text-[10px] font-semibold tracking-[.25em] text-sky-300 uppercase sm:text-xs">Personajes Star Wars</small></span>
@@ -13,7 +13,7 @@ import { Link } from '@inertiajs/vue3';
         <span class="galaxy-header__badge hidden rounded-full px-4 py-1.5 text-xs font-semibold text-sky-100 sm:inline">MAU · Prueba técnica</span>
       </div>
     </header>
-    <main class="galaxy-panel mx-auto my-4 w-[calc(100%-1.5rem)] max-w-[1600px] px-4 py-5 sm:w-[calc(100%-3rem)] sm:px-6 lg:px-8"><slot /></main>
-    <footer class="mx-auto max-w-[1600px] px-6 pb-7 text-xs text-slate-400">Gestión local de personajes · Datos importados desde SWAPI</footer>
+    <main class="galaxy-panel mx-auto my-3 w-[calc(100%-1.5rem)] max-w-[1840px] px-4 py-4 sm:w-[calc(100%-3rem)] sm:px-6 lg:px-8"><slot /></main>
+    <footer class="mx-auto max-w-[1840px] px-6 pb-7 text-xs text-slate-400">Gestión local de personajes · Datos importados desde SWAPI</footer>
   </div>
 </template>

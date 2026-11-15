@@ -2,7 +2,10 @@
 import { computed, ref, watch } from 'vue';
 import { characterImageUrl } from '../lib/characterImages';
 
-const props = defineProps({ personaje: { type: Object, required: true } });
+const props = defineProps({
+  personaje: { type: Object, required: true },
+  large: { type: Boolean, default: false },
+});
 const source = computed(() => characterImageUrl(props.personaje));
 const failed = ref(false);
 const showImage = computed(() => Boolean(source.value) && !failed.value);
@@ -11,7 +14,7 @@ watch(source, () => { failed.value = false; });
 </script>
 
 <template>
-  <div class="holo-portrait" :role="showImage ? undefined : 'img'" :aria-label="showImage ? undefined : `Avatar holográfico de ${personaje.nombre}`">
+  <div class="holo-portrait" :class="{ 'holo-portrait--large': large }" :role="showImage ? undefined : 'img'" :aria-label="showImage ? undefined : `Avatar holográfico de ${personaje.nombre}`">
     <div class="holo-avatar" aria-hidden="true">
       <div class="holo-avatar__halo"></div>
       <div class="holo-avatar__head"></div>
@@ -23,7 +26,7 @@ watch(source, () => { failed.value = false; });
       :src="source"
       :alt="`Retrato de ${personaje.nombre}`"
       class="holo-portrait__image"
-      loading="lazy"
+      :loading="large ? 'eager' : 'lazy'"
       decoding="async"
       width="400"
       height="550"

@@ -45,19 +45,18 @@ function pageLabel(link, index) {
     <div v-if="flash.success" role="status" class="galaxy-alert galaxy-alert--success mt-5">{{ flash.success }}</div>
     <div v-if="flash.error" role="alert" class="galaxy-alert galaxy-alert--error mt-5">{{ flash.error }}</div>
 
-    <div class="my-4 flex flex-wrap items-center justify-between gap-3 border-b border-sky-300/15 pb-3 text-sm">
+    <div class="galaxy-summary my-4 border-b border-sky-300/15 pb-3 text-sm">
       <span class="galaxy-counter"><span aria-hidden="true">✦</span> {{ personajes.total }} {{ personajes.total === 1 ? 'personaje' : 'personajes' }}</span>
+      <nav v-if="personajes.last_page > 1" aria-label="Paginación de personajes" class="galaxy-summary__nav">
+        <template v-for="(link, index) in personajes.links" :key="index">
+          <Link v-if="link.url" :href="link.url" preserve-scroll :aria-current="link.active ? 'page' : undefined" :aria-label="index === 0 || index === personajes.links.length - 1 ? pageLabel(link, index) : `Página ${pageLabel(link, index)}`" class="galaxy-pagination" :class="link.active ? 'galaxy-pagination--active' : ''">{{ pageLabel(link, index) }}</Link>
+          <span v-else class="galaxy-pagination galaxy-pagination--disabled" aria-disabled="true">{{ pageLabel(link, index) }}</span>
+        </template>
+      </nav>
       <span class="galaxy-page-indicator">Página {{ personajes.current_page }} de {{ personajes.last_page }}</span>
     </div>
 
     <PersonajeTable :personajes="personajes.data" :deleting-id="deletingId" @delete="remove" />
-
-    <nav v-if="personajes.last_page > 1" aria-label="Paginación de personajes" class="mt-5 flex flex-wrap items-center justify-center gap-2">
-      <template v-for="(link, index) in personajes.links" :key="index">
-        <Link v-if="link.url" :href="link.url" preserve-scroll :aria-current="link.active ? 'page' : undefined" :aria-label="index === 0 || index === personajes.links.length - 1 ? pageLabel(link, index) : `Página ${pageLabel(link, index)}`" class="galaxy-pagination" :class="link.active ? 'galaxy-pagination--active' : ''">{{ pageLabel(link, index) }}</Link>
-        <span v-else class="galaxy-pagination galaxy-pagination--disabled" aria-disabled="true">{{ pageLabel(link, index) }}</span>
-      </template>
-    </nav>
     <ImportModal :open="modalOpen" @close="modalOpen = false" />
   </AppLayout>
 </template>

@@ -38,7 +38,7 @@ function submit() {
 </script>
 
 <template>
-  <form class="galaxy-form p-5 sm:p-8" @submit.prevent="submit">
+  <form class="galaxy-form p-5 sm:p-8" :class="{ 'galaxy-form--edit': editing }" @submit.prevent="submit">
     <div v-if="editing" class="mb-7 flex flex-wrap items-center gap-2 rounded-xl border border-sky-300/25 bg-sky-300/10 px-4 py-3 text-sm text-slate-200">
       <span class="font-semibold text-sky-200">Procedencia:</span>
       {{ personaje.origen_swapi ? `SWAPI #${personaje.swapi_id}` : 'Manual' }}

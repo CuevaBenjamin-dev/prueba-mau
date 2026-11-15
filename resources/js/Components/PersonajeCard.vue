@@ -17,7 +17,7 @@ function displayMeasure(value, unit) {
   <article class="holo-card" :class="personaje.origen_swapi ? 'holo-card--swapi' : 'holo-card--manual'">
     <PersonajeAvatar :personaje="personaje" />
     <div class="holo-card__body">
-      <div class="flex min-w-0 items-start justify-between gap-2">
+      <div class="holo-card__identity">
         <h2 class="holo-card__name" :title="personaje.nombre">{{ personaje.nombre }}</h2>
         <span class="holo-card__origin" :class="personaje.origen_swapi ? 'holo-card__origin--swapi' : 'holo-card__origin--manual'">{{ personaje.origen_swapi ? 'SWAPI' : 'Manual' }}</span>
       </div>
