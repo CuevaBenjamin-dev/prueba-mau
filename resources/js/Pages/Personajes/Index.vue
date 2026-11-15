@@ -33,8 +33,8 @@ function pageLabel(link, index) {
     <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
       <div>
         <p class="galaxy-eyebrow"><span aria-hidden="true">✦</span> Base de datos local</p>
-        <h1 class="mt-1 text-3xl font-black tracking-tight text-white sm:text-4xl">Personajes</h1>
-        <p class="mt-1 text-sm text-slate-300">Consulta, administra e importa habitantes de la galaxia.</p>
+        <h1 class="galaxy-page-title mt-1">Personajes</h1>
+        <p class="galaxy-subtitle mt-1">Consulta, administra e importa habitantes de la galaxia.</p>
       </div>
       <div class="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
         <button type="button" class="galaxy-button galaxy-button--outline" @click="modalOpen = true"><span aria-hidden="true">◇</span> Importar desde SWAPI</button>

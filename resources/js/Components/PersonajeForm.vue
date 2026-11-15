@@ -39,10 +39,10 @@ function submit() {
 
 <template>
   <form class="galaxy-form p-5 sm:p-8" :class="{ 'galaxy-form--edit': editing }" @submit.prevent="submit">
-    <div v-if="editing" class="mb-7 flex flex-wrap items-center gap-2 rounded-xl border border-sky-300/25 bg-sky-300/10 px-4 py-3 text-sm text-slate-200">
-      <span class="font-semibold text-sky-200">Procedencia:</span>
+    <div v-if="editing" class="galaxy-provenance mb-7 flex flex-wrap items-center gap-2 rounded-xl px-4 py-3 text-sm">
+      <span class="galaxy-provenance__label font-semibold">Procedencia:</span>
       {{ personaje.origen_swapi ? `SWAPI #${personaje.swapi_id}` : 'Manual' }}
-      <span class="text-slate-300">· El identificador y el origen se conservan al editar.</span>
+      <span class="galaxy-provenance__hint">· El identificador y el origen se conservan al editar.</span>
     </div>
     <div class="grid gap-x-6 gap-y-5 sm:grid-cols-2">
       <div v-for="field in fields" :key="field.key" :class="field.key === 'nombre' ? 'sm:col-span-2' : ''">

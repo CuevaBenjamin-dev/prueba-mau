@@ -28,8 +28,8 @@ function submit() {
   <div v-if="open" class="galaxy-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="close" @keydown.esc="close">
     <section role="dialog" aria-modal="true" aria-labelledby="import-title" class="galaxy-modal w-full max-w-md p-5 sm:p-7">
       <div class="flex items-start justify-between gap-4">
-        <div><p class="galaxy-eyebrow">✦ Conexión SWAPI</p><h2 id="import-title" class="mt-2 text-2xl font-extrabold tracking-tight text-white">Importar personaje</h2></div>
-        <button type="button" :disabled="form.processing" aria-label="Cerrar modal" class="rounded-lg px-2 text-2xl leading-none text-slate-300 hover:bg-sky-200/10 hover:text-white" @click="close">×</button>
+        <div><p class="galaxy-eyebrow">✦ Conexión SWAPI</p><h2 id="import-title" class="galaxy-page-title galaxy-page-title--modal mt-2">Importar personaje</h2></div>
+        <button type="button" :disabled="form.processing" aria-label="Cerrar modal" class="galaxy-modal__close" @click="close">×</button>
       </div>
       <p class="mt-3 text-sm leading-6 text-slate-300">Ingresa un ID de personaje entre 1 y 83. Consultaremos SWAPI y añadiremos el registro a tu archivo.</p>
       <form class="mt-6" @submit.prevent="submit">
