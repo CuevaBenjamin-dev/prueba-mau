@@ -4,9 +4,9 @@ Aplicación web local para registrar, consultar, actualizar, eliminar e importar
 
 ## Información del Candidato
 
-- Nombre: **[Completar nombre completo]**
-- Email: **[Completar email]**
-- Teléfono: **[Completar teléfono]**
+- Nombre: **Benjamín de Jesús Cueva Niño de Guzmán**
+- Email: **cueva_dev@hotmail.com**
+- Teléfono: **+51 923 880 101**
 - Usuario de GitHub: **CuevaBenjamin-dev**
 
 ## Requisitos del Sistema
