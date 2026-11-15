@@ -37,24 +37,31 @@ Antes de empezar, disponer de **PHP 8.3**, **Composer**, **Node.js 22.12+** y **
 
 3. **Configurar la base de datos:**
 
-   **¿Dónde crearla?** No pegues SQL directamente en PowerShell. Necesitas un **servidor MySQL 8 en funcionamiento** (instalado en tu equipo o accesible por red) y un usuario con permiso para crear bases de datos. No hace falta Docker.
+   Se presupone que **MySQL Server 8 ya está instalado y funcionando**, y que conoces el usuario y su contraseña. No necesitas Docker ni MySQL Workbench.
 
-   - **Con MySQL Workbench (interfaz visual):** abre Workbench desde Inicio de Windows → abre tu conexión MySQL e introduce su contraseña si la solicita → abre una pestaña de consultas SQL → pega la instrucción siguiente → pulsa el botón del **rayo (Execute)**. La base aparecerá en **SCHEMAS** (actualiza la lista si no aparece).
-   - **Sin Workbench (consola MySQL):** en PowerShell ejecuta `mysql -u root -p` si el cliente MySQL está instalado y disponible; escribe tu contraseña y, cuando veas el indicador `mysql>`, pega la instrucción SQL. Puedes usar otro usuario con permisos en lugar de `root`.
+   **a. Abrir MySQL.** En PowerShell (o en una terminal) escribe:
+
+   ```bash
+   mysql -u root -p
+   ```
+
+   Introduce **la contraseña de tu instalación de MySQL** cuando se solicite; no se mostrará mientras escribes. `root` es un ejemplo: si tienes otro usuario con permisos para crear bases de datos, utilízalo. Si MySQL escucha en otro puerto, agrega `-h 127.0.0.1 -P PUERTO` al comando.
+
+   **b. Crear la base.** Cuando aparezca `mysql>`, pega la instrucción siguiente **dentro de MySQL, no directamente en PowerShell**:
 
    ```sql
    CREATE DATABASE star_wars_personajes CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
 
-   **Si no tienes un servidor MySQL ni una conexión configurada**, primero tendrás que instalar MySQL Server 8 o solicitar acceso a uno. Workbench es opcional y por sí solo no almacena los datos.
+   Si aparece `Query OK`, escribe `exit;` para volver a la terminal.
 
-   **¿Dónde configurar Laravel?** Regresa a la terminal, dentro de la carpeta clonada del proyecto, y copia la plantilla (en PowerShell también puedes usar `Copy-Item .env.example .env`):
+   **c. Preparar Laravel.** En la carpeta clonada `prueba-mau`, ejecuta:
 
    ```bash
    cp .env.example .env
    ```
 
-   Abre el archivo `.env` con un editor de texto y localiza estas líneas:
+   Abre `.env` con un editor de texto (en Windows puedes ejecutar `notepad .env`) y completa la conexión con **los datos de tu MySQL**:
 
    ```ini
    DB_CONNECTION=mysql
@@ -65,13 +72,15 @@ Antes de empezar, disponer de **PHP 8.3**, **Composer**, **Node.js 22.12+** y **
    DB_PASSWORD=
    ```
 
-   Estos son **valores de ejemplo**: usa el host y puerto de la conexión de MySQL que abriste (normalmente `127.0.0.1` y `3306`), el nombre de la base recién creada y **el usuario y contraseña de tu propio servidor MySQL**. Esas credenciales se crean al instalar o administrar MySQL; no vienen en GitHub. Escribe la contraseña en `DB_PASSWORD` si existe y guarda el archivo. No publiques `.env`.
+   Modifica `DB_PORT`, `DB_USERNAME` y `DB_PASSWORD` según tu servidor. `DB_PASSWORD` contiene la **misma contraseña del usuario MySQL** que utilizaste para conectarte; no viene en el repositorio. Guarda el archivo y no lo publiques.
 
-   **Finalmente**, en la terminal del proyecto ejecuta:
+   **d. Generar la clave de Laravel.** De vuelta en la terminal de `prueba-mau`, ejecuta:
 
    ```bash
    php artisan key:generate
    ```
+
+   Si `mysql` no se reconoce, comprueba que el cliente de MySQL esté instalado y disponible en el PATH; también puedes ejecutar SQL desde otra herramienta de administración del servidor.
 
 4. **Ejecutar migraciones:**
 
