@@ -9,6 +9,12 @@ defineProps({ personaje: { type: Object, required: true } });
 <template>
   <Head :title="`Editar ${personaje.nombre}`" />
   <AppLayout>
-    <div class="mx-auto max-w-3xl"><Link href="/personajes" class="text-sm font-semibold text-blue-700 hover:underline">← Volver al listado</Link><p class="mt-8 text-xs font-bold tracking-[.18em] text-blue-700 uppercase">Personaje #{{ personaje.id }}</p><h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Editar personaje</h1><p class="mb-7 mt-2 text-sm text-slate-500">Actualiza sus datos. La procedencia se mantiene.</p><PersonajeForm :personaje="personaje" /></div>
+    <div class="mx-auto max-w-3xl">
+      <Link href="/personajes" class="text-sm font-semibold text-sky-300 hover:text-white hover:underline">← Volver a personajes</Link>
+      <p class="galaxy-eyebrow mt-7">✦ Personaje #{{ personaje.id }}</p>
+      <h1 class="mt-2 text-3xl font-black tracking-tight text-white">Editar personaje</h1>
+      <p class="mb-7 mt-2 text-sm text-slate-300">Actualiza sus datos. La procedencia se mantiene.</p>
+      <PersonajeForm :personaje="personaje" />
+    </div>
   </AppLayout>
 </template>

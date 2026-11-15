@@ -3,17 +3,17 @@ import { Link } from '@inertiajs/vue3';
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f5f7fb]">
-    <header class="border-b border-slate-200 bg-white">
-      <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-6">
-        <Link href="/personajes" class="flex items-center gap-3 text-slate-900 no-underline">
-          <span class="flex size-10 items-center justify-center rounded-xl bg-slate-900 text-xl text-amber-300" aria-hidden="true">✦</span>
-          <span><strong class="block text-base leading-tight tracking-tight">Archivo Galáctico</strong><small class="text-xs font-medium tracking-[.16em] text-slate-500 uppercase">Personajes Star Wars</small></span>
+  <div class="galaxy-app min-h-screen">
+    <header class="galaxy-header">
+      <div class="mx-auto flex w-full max-w-[1660px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+        <Link href="/personajes" class="group flex min-w-0 items-center gap-3 text-slate-100 no-underline sm:gap-4">
+          <span class="galaxy-emblem" aria-hidden="true">✦</span>
+          <span class="min-w-0"><strong class="block truncate text-base font-extrabold tracking-tight sm:text-xl">Archivo Galáctico</strong><small class="block truncate text-[10px] font-semibold tracking-[.25em] text-sky-300 uppercase sm:text-xs">Personajes Star Wars</small></span>
         </Link>
-        <span class="hidden rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold tracking-wide text-slate-500 sm:inline">MAU · Prueba técnica</span>
+        <span class="galaxy-header__badge hidden rounded-full px-4 py-1.5 text-xs font-semibold text-sky-100 sm:inline">MAU · Prueba técnica</span>
       </div>
     </header>
-    <main class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12"><slot /></main>
-    <footer class="mx-auto max-w-6xl px-4 pb-8 text-xs text-slate-400 sm:px-6">Gestión local de personajes · Datos importados desde SWAPI</footer>
+    <main class="galaxy-panel mx-auto my-4 w-[calc(100%-1.5rem)] max-w-[1600px] px-4 py-5 sm:w-[calc(100%-3rem)] sm:px-6 lg:px-8"><slot /></main>
+    <footer class="mx-auto max-w-[1600px] px-6 pb-7 text-xs text-slate-400">Gestión local de personajes · Datos importados desde SWAPI</footer>
   </div>
 </template>
