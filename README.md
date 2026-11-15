@@ -115,7 +115,7 @@ Antes de empezar, disponer de **PHP 8.3**, **Composer**, **Node.js 22.12+** y **
   $env:PATH = "$(Split-Path $php83);$env:PATH"
   ```
 
-  Sustituye `$php83` por la ruta real de PHP. El script configura certificados CA confiables sin desactivar TLS; `.local` está excluida de Git. Si la aplicación ya funciona y SWAPI importa, no necesitas este paso.
+  Sustituye `$php83` por la ruta real de PHP. El script configura certificados CA confiables sin desactivar TLS y activa OPcache para acelerar las recargas del servidor PHP local; `.local` está excluida de Git. Reinicia `php artisan serve` después de ejecutar el script. Si PHP ya tiene certificados válidos y OPcache activo, no necesitas este paso.
 
 - **Pruebas automatizadas (opcional):** crea primero una base MySQL **separada** llamada `star_wars_personajes_test` y revisa la conexión de pruebas en `phpunit.xml` antes de ejecutar `php artisan test`. Las pruebas recrean tablas; nunca deben apuntar a la base principal. Para ver las rutas puedes usar `php artisan route:list --path=personajes`.
 

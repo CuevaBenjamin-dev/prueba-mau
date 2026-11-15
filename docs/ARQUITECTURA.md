@@ -35,6 +35,12 @@ El PHP 8.3 instalado mediante WinGet en el entorno de desarrollo no tenía un al
 
 `Index.vue`, `Crear.vue` y `Editar.vue` son páginas Inertia. `PersonajeForm.vue` reutiliza `useForm()` para POST y PUT. `ImportModal.vue` usa otro `useForm()` para POST de SWAPI y restablece el estado de carga. `PersonajeTable.vue` presenta tabla en escritorio y tarjetas en móvil. La eliminación requiere una confirmación nativa visible. `AppLayout.vue` comparte cabecera y contenedor.
 
+### Tiempo de recarga local
+
+En Windows, el servidor PHP integrado se inició inicialmente sin cargar OPcache. En cada actualización del navegador PHP debía procesar de nuevo el arranque de Laravel y sus dependencias. La ruta de salud `/up`, sin consulta de personajes, tardó aproximadamente 0,25–0,35 s; el listado tardó 0,39–0,67 s, mientras que la consulta paginada a MySQL midió 29 ms. Los archivos estáticos compilados respondieron en unos 2 ms y la página no solicita SWAPI al recargarse. Esto aisló el costo principal en el procesamiento PHP local.
+
+Una comparación con el mismo proyecto y OPcache activo redujo las respuestas calientes del listado a aproximadamente 0,09–0,19 s. El script local ahora carga `php_opcache.dll`, activa `opcache.enable_cli` para el servidor PHP integrado y mantiene `opcache.revalidate_freq=0` para detectar cambios de código durante el desarrollo. Tras regenerar `.local/php.ini` es necesario reiniciar el proceso del servidor. Estos tiempos son mediciones de esta máquina y pueden variar con la carga del navegador y del sistema.
+
 ## Verificación
 
 Las pruebas Feature corren en `star_wars_personajes_test` mediante MySQL y `RefreshDatabase`. `Http::fake()` y `Http::preventStrayRequests()` aíslan SWAPI. Cubren CRUD, rutas, paginación, límites, procedencia, transformación, duplicados, colisión UNIQUE y fallos externos. La compilación de Vite verifica los componentes Vue. Para resultados y comandos actuales, ver el README.

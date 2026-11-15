@@ -15,6 +15,9 @@ $iniPath = Join-Path $localDirectory 'php.ini'
 if (-not (Test-Path -LiteralPath (Join-Path $phpDirectory 'ext\php_curl.dll'))) {
     throw 'La instalación de PHP indicada no contiene la extensión cURL para Windows.'
 }
+if (-not (Test-Path -LiteralPath (Join-Path $phpDirectory 'ext\php_opcache.dll'))) {
+    throw 'La instalación de PHP indicada no contiene OPcache para Windows.'
+}
 
 New-Item -ItemType Directory -Force -Path $localDirectory | Out-Null
 Invoke-WebRequest -Uri 'https://curl.se/ca/cacert.pem' -OutFile $caPath
@@ -25,9 +28,15 @@ if ((Get-Item -LiteralPath $caPath).Length -lt 10000 -or
 }
 
 $caIniPath = $caPath.Replace('\', '/')
+$opcacheIniPath = (Join-Path $phpDirectory 'ext\php_opcache.dll').Replace('\', '/')
 $lines = @(
     '; Configuración local generada para PHP 8.3 en Windows.'
     ('extension_dir="' + $extensionDirectory + '"')
+    ('zend_extension="' + $opcacheIniPath + '"')
+    'opcache.enable=1'
+    'opcache.enable_cli=1'
+    'opcache.validate_timestamps=1'
+    'opcache.revalidate_freq=0'
     'extension=curl'
     'extension=fileinfo'
     'extension=mbstring'
@@ -45,7 +54,12 @@ $configuredCa = & $phpPath -c $iniPath -r 'echo ini_get("curl.cainfo");'
 if ($LASTEXITCODE -ne 0 -or $configuredCa -ne $caIniPath) {
     throw 'PHP no cargó la ruta del paquete CA. Revisa el archivo php.ini generado.'
 }
+$configuredOpcache = & $phpPath -c $iniPath -r 'echo (extension_loaded("Zend OPcache") && ini_get("opcache.enable_cli") === "1") ? "1" : "0";'
+if ($LASTEXITCODE -ne 0 -or $configuredOpcache -ne '1') {
+    throw 'PHP no cargó OPcache para el servidor local. Revisa el archivo php.ini generado.'
+}
 
 Write-Output "PHP configurado: $phpPath"
 Write-Output "Certificados CA: $caPath"
 Write-Output "Configuración local: $iniPath"
+Write-Output 'OPcache: activo para el servidor local'
