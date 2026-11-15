@@ -19,75 +19,91 @@ Versiones verificadas en el entorno de desarrollo: PHP **8.3.36**, Composer **2.
 
 ## Instalación
 
-1. Clonar el repositorio:
+Antes de empezar, disponer de **PHP 8.3**, **Composer**, **Node.js 22.12+** y **MySQL 8** en funcionamiento. MySQL Server debe estar instalado o accesible; Docker y MySQL Workbench no son obligatorios.
+
+1. **Clonar el repositorio:**
 
    ```bash
    git clone https://github.com/CuevaBenjamin-dev/prueba-mau.git
    cd prueba-mau
    ```
 
-   En la entrega local actual, entrar directamente en la carpeta `star-wars-personajes`.
-
-   **Windows con PHP 8.3 instalado por WinGet o ZIP:** preparar certificados y extensiones antes de usar Composer o iniciar Laravel. Sustituir la ruta por la de `php.exe` en el equipo:
-
-   ```powershell
-   $php83 = 'C:\ruta\a\PHP-8.3\php.exe'
-   .\scripts\configurar-php-local.ps1 -PhpExecutable $php83
-   $env:PHPRC = (Resolve-Path .local\php.ini).Path
-   $env:PATH = "$(Split-Path $php83);$env:PATH"
-   ```
-
-   El script descarga por HTTPS el paquete CA publicado por curl y configura `curl.cainfo` y `openssl.cafile` en `.local/php.ini`. No desactiva la verificación TLS. `.local` está excluida de Git.
-
-   Comprobar la conexión HTTPS real, sin guardar datos, antes de probar el modal:
-
-   ```powershell
-   & $php83 -c .local\php.ini artisan tinker --execute='echo app(App\Services\SwapiService::class)->obtenerPersonaje(1)["nombre"];'
-   ```
-
-   El resultado esperado, si SWAPI está disponible, es `Luke Skywalker`. Esta comprobación detecta problemas del almacén CA que `Http::fake()` no puede detectar. Referencias: [CA Extract de curl](https://curl.se/docs/caextract.html), [configuración cURL de PHP](https://www.php.net/manual/en/curl.configuration.php) y [configuración OpenSSL de PHP](https://www.php.net/manual/en/openssl.configuration.php).
-
-2. Instalar dependencias:
+2. **Instalar dependencias:**
 
    ```bash
    composer install
-   npm ci
+   npm install
    ```
 
-3. Crear la base de datos en MySQL 8 (ajustar usuario, contraseña, host y puerto a la instalación local):
+3. **Configurar la base de datos:**
+
+   En tu servidor MySQL, crea una base de datos vacía si todavía no existe (por ejemplo, desde MySQL Workbench o una consola SQL):
 
    ```sql
    CREATE DATABASE star_wars_personajes CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   CREATE DATABASE star_wars_personajes_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
 
-4. Copiar `.env.example` a `.env`, editar `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` y generar la clave:
+   Copia la plantilla de configuración:
 
    ```bash
    cp .env.example .env
+   ```
+
+   Abre `.env` y configura la conexión con los datos de **tu instalación de MySQL**:
+
+   ```ini
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=star_wars_personajes
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```
+
+   El host, puerto, usuario y contraseña deben coincidir con tu servidor. **La contraseña la define quien instala/administra MySQL; no se obtiene del repositorio.** Si MySQL usa otro puerto o usuario, cámbialos. No subas el archivo `.env` a GitHub.
+
+   Genera la clave de Laravel:
+
+   ```bash
    php artisan key:generate
    ```
 
-   En PowerShell se puede usar `Copy-Item .env.example .env`. No subir `.env` al repositorio. La instancia MySQL aislada usada para la validación local de este workspace escucha en **127.0.0.1:3307**; `.env.example` usa el puerto estándar **3306**.
-
-5. Crear las tablas, compilar y arrancar:
+4. **Ejecutar migraciones:**
 
    ```bash
    php artisan migrate
+   ```
+
+5. **Compilar assets:**
+
+   ```bash
    npm run build
+   ```
+
+6. **Iniciar servidor:**
+
+   ```bash
    php artisan serve
    ```
 
-   Abrir `http://localhost:8000/personajes`. Si `artisan serve` no puede enlazar el puerto en Windows, se puede ejecutar `php -S 127.0.0.1:50123 -t public` y abrir `http://127.0.0.1:50123/personajes`. Para desarrollo de assets, `npm run dev` es opcional; `npm run build` ya produce los archivos necesarios.
+7. **Acceder:**
 
-6. Ejecutar pruebas automatizadas contra la base **separada** `star_wars_personajes_test`:
+   http://localhost:8000/personajes
 
-   ```bash
-   php artisan test
-   php artisan route:list --path=personajes
-   ```
+### Ayuda opcional para Windows y pruebas
 
-   `phpunit.xml` selecciona MySQL y la base de pruebas. Su host, puerto, usuario y contraseña se toman del entorno local. Nunca apuntar `DB_DATABASE` y la base de pruebas al mismo nombre: las pruebas usan `RefreshDatabase`.
+- **Error de certificado HTTPS (`cURL error 60`) o extensiones faltantes en PHP para Windows:** si utilizas una instalación de PHP 8.3 por WinGet o ZIP que necesite configuración adicional, ejecuta desde la carpeta del proyecto:
+
+  ```powershell
+  $php83 = 'C:\ruta\a\PHP-8.3\php.exe'
+  .\scripts\configurar-php-local.ps1 -PhpExecutable $php83
+  $env:PHPRC = (Resolve-Path .local\php.ini).Path
+  $env:PATH = "$(Split-Path $php83);$env:PATH"
+  ```
+
+  Sustituye `$php83` por la ruta real de PHP. El script configura certificados CA confiables sin desactivar TLS; `.local` está excluida de Git. Si la aplicación ya funciona y SWAPI importa, no necesitas este paso.
+
+- **Pruebas automatizadas (opcional):** crea primero una base MySQL **separada** llamada `star_wars_personajes_test` y revisa la conexión de pruebas en `phpunit.xml` antes de ejecutar `php artisan test`. Las pruebas recrean tablas; nunca deben apuntar a la base principal. Para ver las rutas puedes usar `php artisan route:list --path=personajes`.
 
 ## Funcionalidades Implementadas
 
