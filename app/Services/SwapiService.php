@@ -5,6 +5,7 @@ namespace App\Services;
 use DomainException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class SwapiService
@@ -15,6 +16,20 @@ class SwapiService
             $response = Http::acceptJson()->connectTimeout(3)->timeout(7)
                 ->get("https://swapi.py4e.com/api/people/{$id}/");
         } catch (ConnectionException $exception) {
+            if (str_contains($exception->getMessage(), 'cURL error 60')) {
+                Log::error('No se pudo verificar el certificado TLS de SWAPI.', [
+                    'swapi_id' => $id,
+                    'error' => $exception->getMessage(),
+                ]);
+
+                throw new DomainException('El servidor no puede verificar el certificado TLS de SWAPI. Revisa la configuración CA de PHP.', previous: $exception);
+            }
+
+            Log::warning('No se pudo conectar a SWAPI.', [
+                'swapi_id' => $id,
+                'error' => $exception->getMessage(),
+            ]);
+
             throw new DomainException('SWAPI no está disponible. Intenta de nuevo más tarde.', previous: $exception);
         }
 

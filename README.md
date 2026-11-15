@@ -28,6 +28,25 @@ Versiones verificadas en el entorno de desarrollo: PHP **8.3.36**, Composer **2.
 
    En la entrega local actual, entrar directamente en la carpeta `star-wars-personajes`.
 
+   **Windows con PHP 8.3 instalado por WinGet o ZIP:** preparar certificados y extensiones antes de usar Composer o iniciar Laravel. Sustituir la ruta por la de `php.exe` en el equipo:
+
+   ```powershell
+   $php83 = 'C:\ruta\a\PHP-8.3\php.exe'
+   .\scripts\configurar-php-local.ps1 -PhpExecutable $php83
+   $env:PHPRC = (Resolve-Path .local\php.ini).Path
+   $env:PATH = "$(Split-Path $php83);$env:PATH"
+   ```
+
+   El script descarga por HTTPS el paquete CA publicado por curl y configura `curl.cainfo` y `openssl.cafile` en `.local/php.ini`. No desactiva la verificación TLS. `.local` está excluida de Git.
+
+   Comprobar la conexión HTTPS real, sin guardar datos, antes de probar el modal:
+
+   ```powershell
+   & $php83 -c .local\php.ini artisan tinker --execute='echo app(App\Services\SwapiService::class)->obtenerPersonaje(1)["nombre"];'
+   ```
+
+   El resultado esperado, si SWAPI está disponible, es `Luke Skywalker`. Esta comprobación detecta problemas del almacén CA que `Http::fake()` no puede detectar. Referencias: [CA Extract de curl](https://curl.se/docs/caextract.html), [configuración cURL de PHP](https://www.php.net/manual/en/curl.configuration.php) y [configuración OpenSSL de PHP](https://www.php.net/manual/en/openssl.configuration.php).
+
 2. Instalar dependencias:
 
    ```bash
@@ -89,7 +108,7 @@ Laravel 12 y PHP 8.3 en el servidor; MySQL 8 con Eloquent; Vue 3 con Composition
 ## Notas
 
 - El CRUD local no depende de la disponibilidad de SWAPI. El cliente HTTP usa `connectTimeout(3)` y `timeout(7)` segundos, sin solicitudes a dominios aportados por el navegador.
-- Los tests de SWAPI usan `Http::fake()` y `Http::preventStrayRequests()`; no consumen la API real. Durante la revisión manual en navegador, SWAPI no estuvo disponible y el modal mostró el mensaje controlado; la creación y edición locales siguieron funcionando.
+- Los tests de SWAPI usan `Http::fake()` y `Http::preventStrayRequests()`; no consumen la API real. Por eso se requiere además una comprobación HTTPS real después de configurar PHP. La primera revisión manual mostró «SWAPI no está disponible» debido a un `cURL error 60` local: faltaba el paquete CA en PHP 8.3. Windows `curl.exe` respondió HTTP 200; al configurar `curl.cainfo` y `openssl.cafile`, Laravel recibió HTTP 200 y transformó a Luke Skywalker correctamente. El error no era un ID inválido ni una caída de SWAPI.
 - El texto `unknown` y `n/a` no son equivalentes en significado. El esquema local admite solo `masculino`, `femenino` y `n/a`; por decisión funcional aprobada, ambos valores externos se representan como `n/a`.
 - La advertencia de trazabilidad `RF-PER-015: sin caso de uso` en MODULA no elimina las seis rutas CRUD. El proyecto funcional vigente es la revisión 97, con 35 requisitos y 5 casos de uso aprobados.
 - Antes de entregar el enlace a MAU, completar los datos del candidato, revisar la declaración de IA y los marcadores de experiencia personal, comprobar que `.env` no se incluya y repetir la instalación y las pruebas desde un clon limpio. El envío por email queda pendiente de autorización.
@@ -98,7 +117,7 @@ Laravel 12 y PHP 8.3 en el servidor; MySQL 8 con Eloquent; Vue 3 con Composition
 
 1. **Organización del código backend.** `PersonajeController` concentra el CRUD y delega validaciones a `GuardarPersonajeRequest`. `ImportacionSwapiController` orquesta la importación, `ImportarPersonajeRequest` valida el ID y `SwapiService` maneja HTTP, transformación y validación de datos externos. Eloquent representa la tabla. No se agregó Repository Pattern para una sola entidad.
 2. **Componentes Vue.** `PersonajeForm` sirve para crear y editar, `PersonajeTable` muestra acciones y datos en escritorio/móvil, `ImportModal` contiene el flujo SWAPI y `AppLayout` unifica la estructura visual. Esto evita duplicar formularios y presentación.
-3. **Manejo de errores de SWAPI.** El ID se valida antes del HTTP; el dominio de la URL es fijo. Hay tiempos máximos de conexión/respuesta, distinción de 404 y fallos temporales, verificación de JSON y de los campos antes de escribir. Un duplicado no genera nueva consulta; el índice UNIQUE cubre importaciones concurrentes. Los fallos vuelven como mensajes de validación en el modal.
+3. **Manejo de errores de SWAPI.** El ID se valida antes del HTTP; el dominio de la URL es fijo. Hay tiempos máximos de conexión/respuesta, distinción de 404 y fallos temporales, verificación de JSON y de los campos antes de escribir. Un duplicado no genera nueva consulta; el índice UNIQUE cubre importaciones concurrentes. Un fallo `cURL error 60` se comunica como problema de configuración TLS local y se registra con su detalle técnico; los demás fallos de conexión conservan el mensaje temporal. Los errores vuelven al modal sin escritura parcial.
 4. **Validaciones.** Los Form Requests validan entrada manual e ID en el servidor. El servicio valida el dato externo transformado antes de persistir. HTML añade comprobaciones básicas de campos obligatorios y límites para respuesta inmediata, pero no sustituye la validación del backend.
 5. **Mayor dificultad.** **[Completar personalmente: describir la dificultad real experimentada y cómo se resolvió; no atribuir al candidato una experiencia no confirmada.]**
 6. **Uso de Inteligencia Artificial.** Se usó **OpenAI Codex** para crear la estructura, código Laravel/Vue, pruebas y esta documentación a partir del PDF, la especificación MODULA y el diseño técnico aportados. Se validó el resultado con migración MySQL, `php artisan route:list`, pruebas Feature con `Http::fake()`, `npm run build` y revisión manual del navegador. **[El candidato debe revisar y ajustar esta declaración según su propio trabajo y verificar que puede explicar y modificar el código.]**
@@ -108,4 +127,4 @@ Laravel 12 y PHP 8.3 en el servidor; MySQL 8 con Eloquent; Vue 3 con Composition
 
 ## Verificación realizada
 
-En el entorno local descrito: migración MySQL ejecutada, `php artisan route:list --path=personajes` mostró las seis rutas CRUD y la ruta de importación, `php artisan test --compact` terminó con **15 pruebas aprobadas y 148 aserciones**, y `npm run build` compiló los assets. En navegador se comprobó creación, edición, confirmación de borrado, modal, mensaje controlado ante fallo real de SWAPI y presentación móvil/escritorio. La disponibilidad futura de SWAPI y el comportamiento en otros equipos requieren comprobación en cada entorno.
+En el entorno local descrito: migración MySQL ejecutada, `php artisan route:list --path=personajes` mostró las seis rutas CRUD y la ruta de importación, `php artisan test --compact` terminó con **16 pruebas aprobadas y 151 aserciones**, y `npm run build` compiló los assets. En navegador se comprobó creación, edición, confirmación de borrado, modal y presentación móvil/escritorio. Después de corregir el almacén CA, una solicitud HTTPS real ejecutada por `SwapiService` devolvió a Luke Skywalker con altura 172 y género masculino. La disponibilidad futura de SWAPI y el comportamiento en otros equipos requieren comprobación en cada entorno.

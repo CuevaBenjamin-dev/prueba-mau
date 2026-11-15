@@ -25,6 +25,12 @@ La migración crea exactamente los doce campos solicitados: `id`, `nombre`, `alt
 5. Se traducen `male`, `female`, `n/a` y `unknown` a los tres valores locales admitidos. Solo medidas enteras positivas dentro de 1..300 y 1..500 se conservan; el resto pasa a `null`. El planeta queda `null` sin consultar `homeworld`.
 6. El controlador crea una sola fila y convierte una colisión MySQL 1062 del mismo `swapi_id` en error de validación legible. No se actualiza el personaje importado previamente.
 
+### Certificados TLS en Windows
+
+El PHP 8.3 instalado mediante WinGet en el entorno de desarrollo no tenía un almacén CA configurado. El archivo `.local/php.ini`, creado para habilitar extensiones, inicialmente omitió `curl.cainfo` y `openssl.cafile`. Así, la petición HTTPS de Laravel fallaba antes de recibir una respuesta con `cURL error 60: unable to get local issuer certificate`. `curl.exe` de Windows sí recibía HTTP 200 porque usa Schannel y las autoridades certificadoras del sistema. Pasar explícitamente a PHP el paquete CA de Mozilla publicado por curl hizo que la misma petición retornara HTTP 200.
+
+`scripts/configurar-php-local.ps1` prepara `.local/cacert.pem` y `.local/php.ini` para el PHP indicado, con verificación TLS activa. El paquete CA y la configuración generada son locales e ignorados por Git. En otra máquina debe ejecutarse el script con la ruta de su PHP 8.3 y repetir la comprobación HTTPS real. El servicio ahora distingue el error de certificado de una caída de SWAPI y registra el detalle técnico sin mostrar una excepción cruda. Las pruebas `Http::fake()` no sustituyen esta comprobación porque no establecen una conexión TLS.
+
 ## Interfaz
 
 `Index.vue`, `Crear.vue` y `Editar.vue` son páginas Inertia. `PersonajeForm.vue` reutiliza `useForm()` para POST y PUT. `ImportModal.vue` usa otro `useForm()` para POST de SWAPI y restablece el estado de carga. `PersonajeTable.vue` presenta tabla en escritorio y tarjetas en móvil. La eliminación requiere una confirmación nativa visible. `AppLayout.vue` comparte cabecera y contenedor.

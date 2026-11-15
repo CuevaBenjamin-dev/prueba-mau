@@ -86,6 +86,19 @@ class ImportarSwapiTest extends TestCase
         $this->assertDatabaseCount('personajes', 0);
     }
 
+    public function test_missing_ca_bundle_is_reported_as_a_local_tls_configuration_error(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake(function () {
+            throw new ConnectionException('cURL error 60: unable to get local issuer certificate');
+        });
+
+        $this->post('/personajes/importar', ['id' => 1])->assertSessionHasErrors([
+            'id' => 'El servidor no puede verificar el certificado TLS de SWAPI. Revisa la configuración CA de PHP.',
+        ]);
+        $this->assertDatabaseCount('personajes', 0);
+    }
+
     public function test_malformed_or_invalid_external_data_never_persists(): void
     {
         Http::preventStrayRequests();
