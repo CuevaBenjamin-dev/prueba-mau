@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+@source '../js/**/*.vue';
+
+:root { font-family: 'Segoe UI', system-ui, sans-serif; color: #14223d; background: #f5f7fb; }
+body { min-width: 320px; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+a, button, input, select { outline-offset: 3px; }
+::selection { background: #dbeafe; }
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme { --font-sans: 'Segoe UI', ui-sans-serif, system-ui, sans-serif; }
