@@ -18,24 +18,30 @@ class ImportarSwapiTest extends TestCase
         return array_merge([
             'name' => 'Luke Skywalker', 'height' => '172', 'mass' => '77',
             'hair_color' => 'blond', 'eye_color' => 'blue', 'gender' => 'male',
-            'homeworld' => 'https://swapi.py4e.com/api/planets/1/',
+            'homeworld' => null,
         ], $changes);
     }
 
     public function test_import_maps_fields_and_prevents_duplicate_without_second_http_request(): void
     {
         Http::preventStrayRequests();
-        Http::fake(['https://swapi.py4e.com/api/people/1/' => Http::response($this->remote())]);
+        Http::fake([
+            'https://swapi.py4e.com/api/people/1/' => Http::response($this->remote([
+                'homeworld' => 'https://swapi.py4e.com/api/planets/1/',
+            ])),
+            'https://swapi.py4e.com/api/planets/1/' => Http::response(['name' => 'Tatooine']),
+        ]);
         $this->post('/personajes/importar', ['id' => 1])->assertRedirect('/personajes')->assertSessionHas('success');
         $this->assertDatabaseHas('personajes', [
             'nombre' => 'Luke Skywalker', 'altura' => 172, 'masa' => 77,
             'color_cabello' => 'blond', 'color_ojos' => 'blue', 'genero' => 'masculino',
-            'planeta_origen' => null, 'origen_swapi' => true, 'swapi_id' => 1,
+            'planeta_origen' => 'Tatooine', 'origen_swapi' => true, 'swapi_id' => 1,
         ]);
         $this->post('/personajes/importar', ['id' => 1])->assertSessionHasErrors('id');
         $this->assertDatabaseCount('personajes', 1);
-        Http::assertSentCount(1);
+        Http::assertSentCount(2);
         Http::assertSent(fn ($request) => $request->url() === 'https://swapi.py4e.com/api/people/1/');
+        Http::assertSent(fn ($request) => $request->url() === 'https://swapi.py4e.com/api/planets/1/');
     }
 
     public function test_id_validation_never_calls_swapi(): void
@@ -54,9 +60,9 @@ class ImportarSwapiTest extends TestCase
     {
         Http::preventStrayRequests();
         foreach ([
-            ['female', 'femenino'], ['n/a', 'n/a'], ['UNKNOWN', 'n/a'],
+            ['female', 'femenino'], ['n/a', 'n/a'], ['UNKNOWN', 'n/a'], ['none', 'n/a'],
         ] as [$remoteGender, $localGender]) {
-            $id = ['female' => 2, 'n/a' => 3, 'UNKNOWN' => 83][$remoteGender];
+            $id = ['female' => 2, 'n/a' => 3, 'UNKNOWN' => 83, 'none' => 23][$remoteGender];
             Http::fake(["https://swapi.py4e.com/api/people/{$id}/" => Http::response($this->remote([
                 'name' => "Personaje {$id}", 'gender' => $remoteGender,
                 'height' => '301', 'mass' => '77.5',
@@ -115,6 +121,73 @@ class ImportarSwapiTest extends TestCase
             $this->post('/personajes/importar', ['id' => 6])->assertSessionHasErrors('id');
         }
         $this->assertDatabaseCount('personajes', 0);
+    }
+
+    public function test_id_23_ig88_with_gender_none_is_imported(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://swapi.py4e.com/api/people/23/' => Http::response($this->remote([
+                'name' => 'IG-88', 'height' => '200', 'mass' => '140',
+                'gender' => 'none', 'homeworld' => 'https://swapi.py4e.com/api/planets/28/',
+            ])),
+            'https://swapi.py4e.com/api/planets/28/' => Http::response(['name' => 'unknown']),
+        ]);
+
+        $this->post('/personajes/importar', ['id' => 23])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('personajes', [
+            'swapi_id' => 23, 'nombre' => 'IG-88', 'genero' => 'n/a',
+            'planeta_origen' => null,
+        ]);
+        Http::assertSentCount(2);
+    }
+
+    public function test_untrusted_homeworld_url_is_ignored_without_external_request(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://swapi.py4e.com/api/people/22/' => Http::response($this->remote([
+                'name' => 'Boba Fett', 'homeworld' => 'https://example.org/api/planets/1/',
+            ])),
+        ]);
+
+        $this->post('/personajes/importar', ['id' => 22])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('personajes', ['swapi_id' => 22, 'planeta_origen' => null]);
+        Http::assertSentCount(1);
+    }
+
+    public function test_planet_http_failure_does_not_prevent_character_import(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://swapi.py4e.com/api/people/6/' => Http::response($this->remote([
+                'name' => 'Owen Lars', 'homeworld' => 'https://swapi.py4e.com/api/planets/1/',
+            ])),
+            'https://swapi.py4e.com/api/planets/1/' => Http::response([], 503),
+        ]);
+
+        $this->post('/personajes/importar', ['id' => 6])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('personajes', ['swapi_id' => 6, 'planeta_origen' => null]);
+        Http::assertSentCount(2);
+    }
+
+    public function test_planet_timeout_does_not_prevent_character_import(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake(function ($request) {
+            if (str_contains($request->url(), '/api/planets/')) {
+                throw new ConnectionException('Connection timed out');
+            }
+
+            return Http::response($this->remote([
+                'name' => 'Personaje remoto',
+                'homeworld' => 'https://swapi.py4e.com/api/planets/1/',
+            ]));
+        });
+
+        $this->post('/personajes/importar', ['id' => 30])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('personajes', ['swapi_id' => 30, 'planeta_origen' => null]);
+        Http::assertSentCount(2);
     }
 
     public function test_database_enforces_unique_swapi_id(): void
