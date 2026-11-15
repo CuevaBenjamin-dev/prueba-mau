@@ -1,7 +1,8 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import PersonajeAvatar from './PersonajeAvatar.vue';
+import { canAnimatePersonajeTransition, editOriginUrl, returningPersonajeId } from '../personajeTransition';
 
 const props = defineProps({
   personaje: { type: Object, required: true },
@@ -10,14 +11,17 @@ const props = defineProps({
 const emit = defineEmits(['delete']);
 const animateEdit = ref(false);
 const editing = ref(false);
+const returning = computed(() => returningPersonajeId.value === props.personaje.id);
 
 onMounted(() => {
-  animateEdit.value = Boolean(document.startViewTransition)
-    && window.matchMedia('(min-width: 1024px) and (prefers-reduced-motion: no-preference)').matches;
+  animateEdit.value = canAnimatePersonajeTransition();
 });
 
 function prepareEdit() {
-  if (animateEdit.value) editing.value = true;
+  if (animateEdit.value) {
+    editOriginUrl.value = window.location.pathname + window.location.search;
+    editing.value = true;
+  }
 }
 
 function finishEdit() {
@@ -30,7 +34,7 @@ function displayMeasure(value, unit) {
 </script>
 
 <template>
-  <article class="holo-card" :class="[personaje.origen_swapi ? 'holo-card--swapi' : 'holo-card--manual', { 'holo-card--editing': editing }]">
+  <article class="holo-card" :class="[personaje.origen_swapi ? 'holo-card--swapi' : 'holo-card--manual', { 'holo-card--editing': editing || returning }]">
     <PersonajeAvatar :personaje="personaje" />
     <div class="holo-card__body">
       <div class="holo-card__identity">

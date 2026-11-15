@@ -43,6 +43,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .galaxy-summary .galaxy-counter { justify-self: start; }
 .galaxy-summary .galaxy-page-indicator { justify-self: end; }
 .galaxy-summary__notice { position: absolute; left: 50%; bottom: calc(100% + 8px); width: max-content; max-width: min(360px, calc(100vw - 3rem)); padding: .55rem .8rem; transform: translateX(-50%); text-align: center; box-shadow: 0 8px 24px #0008; }
+@media (prefers-reduced-motion: no-preference) {
+  .galaxy-summary__notice { animation: galaxy-notice-appear .8s cubic-bezier(.22, 1, .36, 1) both; }
+  @keyframes galaxy-notice-appear { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+}
 .character-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
 @media (min-width: 640px) { .character-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1024px) { .character-grid { flex: 1; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: minmax(480px, 1fr); align-items: stretch; } }

@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
 
-const props = defineProps({ personaje: { type: Object, default: null } });
+const props = defineProps({ personaje: { type: Object, default: null }, returnNavigation: { type: Object, default: null } });
 const editing = computed(() => Boolean(props.personaje));
 const form = useForm({
   nombre: props.personaje?.nombre ?? '',
@@ -60,7 +60,7 @@ function submit() {
       </div>
     </div>
     <div class="mt-8 flex flex-col-reverse gap-3 border-t border-sky-200/15 pt-6 sm:flex-row sm:justify-end">
-      <Link href="/personajes" class="galaxy-button galaxy-button--outline">Cancelar</Link>
+      <Link v-bind="returnNavigation ?? { href: '/personajes' }" class="galaxy-button galaxy-button--outline">Cancelar</Link>
       <button type="submit" :disabled="form.processing" class="galaxy-button galaxy-button--gold">{{ form.processing ? 'Guardando…' : editing ? 'Actualizar personaje' : 'Guardar personaje' }}</button>
     </div>
   </form>
