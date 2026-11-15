@@ -42,10 +42,10 @@ function pageLabel(link, index) {
       </div>
     </div>
 
-    <div v-if="flash.success" role="status" class="galaxy-alert galaxy-alert--success mt-5">{{ flash.success }}</div>
     <div v-if="flash.error" role="alert" class="galaxy-alert galaxy-alert--error mt-5">{{ flash.error }}</div>
 
     <div class="galaxy-summary my-4 border-b border-sky-300/15 pb-3 text-sm">
+      <div v-if="flash.success" role="status" class="galaxy-alert galaxy-alert--success galaxy-summary__notice">{{ flash.success }}</div>
       <span class="galaxy-counter"><span aria-hidden="true">✦</span> {{ personajes.total }} {{ personajes.total === 1 ? 'personaje' : 'personajes' }}</span>
       <nav v-if="personajes.last_page > 1" aria-label="Paginación de personajes" class="galaxy-summary__nav">
         <template v-for="(link, index) in personajes.links" :key="index">

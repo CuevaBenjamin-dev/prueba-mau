@@ -1,4 +1,5 @@
 <script setup>
+import { onMounted, ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import PersonajeAvatar from './PersonajeAvatar.vue';
 
@@ -7,6 +8,21 @@ const props = defineProps({
   deletingId: { type: Number, default: null },
 });
 const emit = defineEmits(['delete']);
+const animateEdit = ref(false);
+const editing = ref(false);
+
+onMounted(() => {
+  animateEdit.value = Boolean(document.startViewTransition)
+    && window.matchMedia('(min-width: 1024px) and (prefers-reduced-motion: no-preference)').matches;
+});
+
+function prepareEdit() {
+  if (animateEdit.value) editing.value = true;
+}
+
+function finishEdit() {
+  editing.value = false;
+}
 
 function displayMeasure(value, unit) {
   return value == null ? '—' : `${value} ${unit}`;
@@ -14,7 +30,7 @@ function displayMeasure(value, unit) {
 </script>
 
 <template>
-  <article class="holo-card" :class="personaje.origen_swapi ? 'holo-card--swapi' : 'holo-card--manual'">
+  <article class="holo-card" :class="[personaje.origen_swapi ? 'holo-card--swapi' : 'holo-card--manual', { 'holo-card--editing': editing }]">
     <PersonajeAvatar :personaje="personaje" />
     <div class="holo-card__body">
       <div class="holo-card__identity">
@@ -27,7 +43,7 @@ function displayMeasure(value, unit) {
         <div><dt>Género</dt><dd class="capitalize">{{ personaje.genero ?? '—' }}</dd></div>
       </dl>
       <div class="holo-card__actions">
-        <Link :href="`/personajes/${personaje.id}/editar`" class="holo-action holo-action--edit">Editar</Link>
+        <Link :href="`/personajes/${personaje.id}/editar`" class="holo-action holo-action--edit" :view-transition="animateEdit" :on-before="prepareEdit" :on-finish="finishEdit">Editar</Link>
         <button type="button" :disabled="deletingId === personaje.id" class="holo-action holo-action--delete" :aria-label="`Eliminar a ${personaje.nombre}`" @click="emit('delete', personaje)">{{ deletingId === personaje.id ? 'Eliminando…' : 'Eliminar' }}</button>
       </div>
     </div>
