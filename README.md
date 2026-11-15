@@ -37,19 +37,24 @@ Antes de empezar, disponer de **PHP 8.3**, **Composer**, **Node.js 22.12+** y **
 
 3. **Configurar la base de datos:**
 
-   En tu servidor MySQL, crea una base de datos vacía si todavía no existe (por ejemplo, desde MySQL Workbench o una consola SQL):
+   **¿Dónde crearla?** No pegues SQL directamente en PowerShell. Necesitas un **servidor MySQL 8 en funcionamiento** (instalado en tu equipo o accesible por red) y un usuario con permiso para crear bases de datos. No hace falta Docker.
+
+   - **Con MySQL Workbench (interfaz visual):** abre Workbench desde Inicio de Windows → abre tu conexión MySQL e introduce su contraseña si la solicita → abre una pestaña de consultas SQL → pega la instrucción siguiente → pulsa el botón del **rayo (Execute)**. La base aparecerá en **SCHEMAS** (actualiza la lista si no aparece).
+   - **Sin Workbench (consola MySQL):** en PowerShell ejecuta `mysql -u root -p` si el cliente MySQL está instalado y disponible; escribe tu contraseña y, cuando veas el indicador `mysql>`, pega la instrucción SQL. Puedes usar otro usuario con permisos en lugar de `root`.
 
    ```sql
    CREATE DATABASE star_wars_personajes CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
 
-   Copia la plantilla de configuración:
+   **Si no tienes un servidor MySQL ni una conexión configurada**, primero tendrás que instalar MySQL Server 8 o solicitar acceso a uno. Workbench es opcional y por sí solo no almacena los datos.
+
+   **¿Dónde configurar Laravel?** Regresa a la terminal, dentro de la carpeta clonada del proyecto, y copia la plantilla (en PowerShell también puedes usar `Copy-Item .env.example .env`):
 
    ```bash
    cp .env.example .env
    ```
 
-   Abre `.env` y configura la conexión con los datos de **tu instalación de MySQL**:
+   Abre el archivo `.env` con un editor de texto y localiza estas líneas:
 
    ```ini
    DB_CONNECTION=mysql
@@ -60,9 +65,9 @@ Antes de empezar, disponer de **PHP 8.3**, **Composer**, **Node.js 22.12+** y **
    DB_PASSWORD=
    ```
 
-   El host, puerto, usuario y contraseña deben coincidir con tu servidor. **La contraseña la define quien instala/administra MySQL; no se obtiene del repositorio.** Si MySQL usa otro puerto o usuario, cámbialos. No subas el archivo `.env` a GitHub.
+   Estos son **valores de ejemplo**: usa el host y puerto de la conexión de MySQL que abriste (normalmente `127.0.0.1` y `3306`), el nombre de la base recién creada y **el usuario y contraseña de tu propio servidor MySQL**. Esas credenciales se crean al instalar o administrar MySQL; no vienen en GitHub. Escribe la contraseña en `DB_PASSWORD` si existe y guarda el archivo. No publiques `.env`.
 
-   Genera la clave de Laravel:
+   **Finalmente**, en la terminal del proyecto ejecuta:
 
    ```bash
    php artisan key:generate
