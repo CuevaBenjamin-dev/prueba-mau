@@ -55,7 +55,7 @@ class SwapiService
         $gender = match ($gender) {
             'male' => 'masculino',
             'female' => 'femenino',
-            'n/a', 'unknown' => 'n/a',
+            'n/a', 'unknown', 'none' => 'n/a',
             default => null,
         };
 
@@ -87,7 +87,54 @@ class SwapiService
             throw new DomainException('SWAPI devolvió datos incompatibles. No se importó el personaje.');
         }
 
+        // Solo se enriquece el campo opcional después de validar los datos obligatorios.
+        $data['planeta_origen'] = $this->obtenerNombrePlaneta($remote['homeworld'] ?? null);
+
         return $data;
+    }
+
+    /**
+     * La referencia homeworld solo se acepta del dominio y ruta canónicos de SWAPI.
+     * Un fallo secundario no impide importar el personaje.
+     */
+    private function obtenerNombrePlaneta(mixed $homeworld): ?string
+    {
+        if (! is_string($homeworld)
+            || ! preg_match('~\\Ahttps://swapi\\.py4e\\.com/api/planets/([1-9][0-9]{0,3})/\\z~', $homeworld, $matches)) {
+            return null;
+        }
+
+        $planetId = (int) $matches[1];
+
+        try {
+            $response = Http::acceptJson()->connectTimeout(3)->timeout(7)->withoutRedirecting()
+                ->get("https://swapi.py4e.com/api/planets/{$planetId}/");
+        } catch (ConnectionException $exception) {
+            Log::warning('No se pudo consultar el planeta de origen en SWAPI.', [
+                'planet_id' => $planetId,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (! $response->successful()) {
+            Log::warning('SWAPI no devolvió un planeta disponible.', [
+                'planet_id' => $planetId,
+                'status' => $response->status(),
+            ]);
+
+            return null;
+        }
+
+        $planet = $response->json();
+        if (! is_array($planet) || array_is_list($planet) || ! is_string($planet['name'] ?? null)) {
+            return null;
+        }
+
+        $name = trim($planet['name']);
+
+        return $name !== '' && mb_strlen($name) <= 100 ? $name : null;
     }
 
     private function validOptionalText(mixed $value): bool
