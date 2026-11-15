@@ -22,7 +22,7 @@ class ImportarSwapiTest extends TestCase
         ], $changes);
     }
 
-    public function test_import_maps_fields_and_prevents_duplicate_without_second_http_request(): void
+    public function test_import_maps_fields_and_prevents_duplicate_without_repeating_http_requests(): void
     {
         Http::preventStrayRequests();
         Http::fake([
