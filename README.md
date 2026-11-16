@@ -2,7 +2,15 @@
 
 Aplicación web local para registrar, consultar, actualizar, eliminar e importar personajes desde [SWAPI](https://swapi.py4e.com/documentation). Fue creada con `laravel new` sin starter kit. PER (gestión) y SWA (importación) son áreas funcionales de una sola aplicación Laravel.
 
-**Documentación técnica:** [resumen de arquitectura](docs/ARQUITECTURA.md) · [diseño técnico documentado](docs/DISENO_TECNICO.md). La especificación funcional completa aprobada en MODULA no está exportada dentro de este repositorio.
+## Documentación del proyecto
+
+Los requisitos se definieron y aprobaron en MODULA, con apoyo del método CLARO para mantener su trazabilidad. La exportación vigente de la revisión 117 reúne **38 requisitos y 5 casos de uso aprobados**, organizados en las áreas funcionales PER y SWA.
+
+- [Requisitos y análisis funcional](docs/funcional/README.md)
+- [Arquitectura técnica](docs/ARQUITECTURA.md)
+- [Diseño técnico documentado](docs/DISENO_TECNICO.md)
+
+Los resultados de pruebas y ejecución se registran más adelante en este README.
 
 ## Información del Candidato
 
