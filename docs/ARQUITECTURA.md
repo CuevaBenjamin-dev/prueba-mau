@@ -1,50 +1,57 @@
-# Arquitectura técnica
+# Arquitectura técnica — estado implementado
 
-## Alcance
+Este resumen describe la aplicación Laravel/Vue existente. El [diseño técnico documentado](DISENO_TECNICO.md) desarrolla las decisiones, el modelo, los flujos, las pruebas y los cambios respecto al diseño original `DT-MAU-001` del 14/11/2026. El [README](../README.md) contiene la instalación y los resultados de verificación.
 
-Una aplicación Laravel 12 con rutas web e Inertia. PER gestiona personajes y SWA importa datos desde SWAPI. Comparten el modelo `Personaje` y la tabla MySQL `personajes`. No hay API REST separada ni autenticación.
+## Alcance y fuentes
+
+PER gestiona personajes y SWA importa desde SWAPI. Son responsabilidades funcionales de **una sola aplicación Laravel 12**, con rutas web e Inertia.js; comparten `Personaje` y la tabla MySQL `personajes`. No hay API REST separada, autenticación, microservicios ni Docker obligatorio.
+
+El PDF de MAU fija las obligaciones. La exportación MODULA usada al iniciar el MVP era la revisión 97 con 35 requisitos y 5 casos de uso aprobados. El README registra el cierre posterior del proyecto funcional con 38 requisitos y 5 casos; **la exportación final no está en este repositorio**. Por ello, este resumen documenta el código actual y no pretende reproducir la especificación funcional completa ni reemplazarla.
 
 ```text
-Vue 3 (useForm) → rutas web → controladores → Form Requests
-                                      ├→ Personaje (Eloquent) → MySQL
-                                      └→ SwapiService → SWAPI HTTPS
+Navegador: Vue 3 + Inertia useForm + Tailwind/CSS
+       │ rutas web, sesión, CSRF y mensajes flash
+       ▼
+Middleware web ──► Form Requests en escrituras ──► controladores Laravel
+                                                   ├──► Personaje (Eloquent) ──► MySQL
+                                                   └──► SwapiService ──► SWAPI people HTTPS
+                                                                         └──► SWAPI planets HTTPS (opcional)
+
+Navegador ──► Star Wars Gallery (fotografías opcionales)
 ```
 
 ## Rutas y persistencia
 
-El contrato tiene GET `/personajes`, GET `/personajes/crear`, POST `/personajes`, GET `/personajes/{id}/editar`, PUT `/personajes/{id}`, DELETE `/personajes/{id}` y POST `/personajes/importar`. Los parámetros de personaje se resuelven con binding de Eloquent; un ID inexistente retorna 404. El listado ordena por `id` y pagina a diez.
+`routes/web.php` declara GET `/personajes`, GET `/personajes/crear`, POST `/personajes`, GET `/personajes/{personaje}/editar`, PUT `/personajes/{personaje}`, DELETE `/personajes/{personaje}` y POST `/personajes/importar`. `GET /` redirige al listado. Eloquent resuelve los IDs existentes y Laravel devuelve 404 para los inexistentes.
 
-La migración crea exactamente los doce campos solicitados: `id`, `nombre`, `altura`, `masa`, `color_cabello`, `color_ojos`, `genero`, `planeta_origen`, `origen_swapi`, `swapi_id`, `created_at` y `updated_at`. El índice UNIQUE nullable en `swapi_id` protege la duplicidad incluso bajo concurrencia. En un alta manual, los metadatos de origen se asignan en el servidor. La actualización usa solo campos validados y preserva esos metadatos.
+`PersonajeController` ordena por `id` y usa `paginate(10)`. La migración define las doce columnas solicitadas: `id`, `nombre`, `altura`, `masa`, `color_cabello`, `color_ojos`, `genero`, `planeta_origen`, `origen_swapi`, `swapi_id`, `created_at`, `updated_at`. `swapi_id` es nullable y `UNIQUE`; `origen_swapi` tiene predeterminado `false`. El alta manual fuerza `origen_swapi=false` y `swapi_id=null`. La edición solo aplica campos validados y conserva la procedencia.
 
-## Importación
+`GuardarPersonajeRequest` valida nombre de 3–100 caracteres, altura entera opcional 1–300, masa entera opcional 1–500, género obligatorio entre `masculino`, `femenino`, `n/a` y textos opcionales de hasta 100 caracteres. `ImportarPersonajeRequest` valida ID entero 1–83. La interfaz añade validación HTML, pero el servidor es la frontera de confianza.
 
-1. `ImportarPersonajeRequest` valida ID entero entre 1 y 83.
-2. El controlador consulta duplicados locales antes del HTTP.
-3. `SwapiService` solicita exclusivamente `https://swapi.py4e.com/api/people/{id}/` con esperas máximas de 3 s de conexión y 7 s totales.
-4. El servicio distingue 404, fallos remotos y fallos de conexión; rechaza JSON malformado y datos incompatibles antes de crear el registro.
-5. Se traducen `male`, `female`, `n/a` y `unknown` a los tres valores locales admitidos. Solo medidas enteras positivas dentro de 1..300 y 1..500 se conservan; el resto pasa a `null`. El planeta queda `null` sin consultar `homeworld`.
-6. El controlador crea una sola fila y convierte una colisión MySQL 1062 del mismo `swapi_id` en error de validación legible. No se actualiza el personaje importado previamente.
+## Importación SWAPI
+
+`ImportacionSwapiController` rechaza primero un `swapi_id` duplicado. `SwapiService` consulta `https://swapi.py4e.com/api/people/{id}/` con 3 s máximos de conexión y 7 s de espera total. Comprueba estado, estructura JSON y campos requeridos antes de devolver datos para una sola inserción. Un 404, un fallo remoto, timeout, problema de conexión o respuesta incompatible produce un error controlado. La colisión concurrente MySQL 1062 del mismo ID se convierte en mensaje de duplicado; no se sobrescriben registros existentes.
+
+El servicio traduce `male→masculino`, `female→femenino`, y `n/a`, `unknown` o `none→n/a`. Solo conserva altura y masa enteras dentro de sus rangos; los valores desconocidos, no enteros o fuera de rango quedan `null`. **Cambio posterior al diseño original:** si `homeworld` coincide exactamente con una URL canónica de planetas de SWAPI, se solicita de forma secundaria su nombre, sin seguir redirecciones. URL inválida, planeta desconocido, respuesta incorrecta o fallo secundario dejan `planeta_origen=null` y no bloquean la importación. Ninguna consulta externa participa en el CRUD local.
 
 ### Certificados TLS en Windows
 
-El PHP 8.3 instalado mediante WinGet en el entorno de desarrollo no tenía un almacén CA configurado. El archivo `.local/php.ini`, creado para habilitar extensiones, inicialmente omitió `curl.cainfo` y `openssl.cafile`. Así, la petición HTTPS de Laravel fallaba antes de recibir una respuesta con `cURL error 60: unable to get local issuer certificate`. `curl.exe` de Windows sí recibía HTTP 200 porque usa Schannel y las autoridades certificadoras del sistema. Pasar explícitamente a PHP el paquete CA de Mozilla publicado por curl hizo que la misma petición retornara HTTP 200.
+El PHP 8.3 instalado mediante WinGet en el entorno de desarrollo no tenía inicialmente un almacén CA configurado. Laravel fallaba con `cURL error 60: unable to get local issuer certificate`, mientras `curl.exe` de Windows respondía HTTP 200 al usar Schannel. `scripts/configurar-php-local.ps1` prepara `.local/cacert.pem` y `.local/php.ini` con `curl.cainfo` y `openssl.cafile`, manteniendo TLS activo. Estos archivos son locales y están ignorados por Git. En otro equipo se debe configurar su propio PHP y comprobar la conexión HTTPS real; `Http::fake()` no prueba TLS.
 
-`scripts/configurar-php-local.ps1` prepara `.local/cacert.pem` y `.local/php.ini` para el PHP indicado, con verificación TLS activa. El paquete CA y la configuración generada son locales e ignorados por Git. En otra máquina debe ejecutarse el script con la ruta de su PHP 8.3 y repetir la comprobación HTTPS real. El servicio ahora distingue el error de certificado de una caída de SWAPI y registra el detalle técnico sin mostrar una excepción cruda. Las pruebas `Http::fake()` no sustituyen esta comprobación porque no establecen una conexión TLS.
+## Interfaz, imágenes y responsive
 
-## Interfaz
+`Index.vue`, `Crear.vue` y `Editar.vue` son páginas Inertia. `PersonajeForm.vue` comparte `useForm()` para POST/PUT. `ImportModal.vue` usa otro `useForm()`, muestra errores, carga y evita envíos repetidos. `PersonajeTable.vue` mantiene su nombre por continuidad, pero presenta una **galería de `PersonajeCard.vue` en todos los tamaños**. `AppLayout.vue` comparte cabecera y pie. La eliminación requiere `window.confirm()` antes de la petición DELETE; el middleware de Inertia comparte mensajes flash.
 
-`Index.vue`, `Crear.vue` y `Editar.vue` son páginas Inertia. `PersonajeForm.vue` reutiliza `useForm()` para POST y PUT. `ImportModal.vue` usa otro `useForm()` para POST de SWAPI y restablece el estado de carga. `PersonajeTable.vue` presenta tabla en escritorio y tarjetas en móvil. La eliminación requiere una confirmación nativa visible. `AppLayout.vue` comparte cabecera y contenedor.
+`PersonajeAvatar.vue` usa `characterImages.js` para construir una URL de Star Wars Gallery **solo** cuando el registro procede de SWAPI y su `swapi_id` es un entero válido. La fotografía se carga en el navegador, sin guardarse en MySQL ni en el repositorio; si no existe o falla, permanece el avatar holográfico. Su disponibilidad no condiciona el CRUD ni la importación.
+
+La cuadrícula usa 1 columna por defecto; 2 desde 640 px, 3 desde 1024, 4 desde 1100, 5 desde 1500 y 10 desde 1600. Laravel sigue entregando **diez registros por página** independientemente del ancho. El retrato móvil y el de edición priorizan `object-fit: contain`; en tarjetas amplias se usa una composición cinematográfica con capas, degradado y fotografía. La edición presenta imagen y formulario en dos columnas desde 1024 px. El modal tiene desplazamiento interno si el viewport es bajo y los controles móviles tienen altura mínima de 44 px. Las transiciones respetan `prefers-reduced-motion`.
 
 ### Tiempo de recarga local
 
-En Windows, el servidor PHP integrado se inició inicialmente sin cargar OPcache. En cada actualización del navegador PHP debía procesar de nuevo el arranque de Laravel y sus dependencias. La ruta de salud `/up`, sin consulta de personajes, tardó aproximadamente 0,25–0,35 s; el listado tardó 0,39–0,67 s, mientras que la consulta paginada a MySQL midió 29 ms. Los archivos estáticos compilados respondieron en unos 2 ms y la página no solicita SWAPI al recargarse. Esto aisló el costo principal en el procesamiento PHP local.
+El servidor PHP integrado se inició inicialmente sin OPcache. En esa máquina, `/up` tardó aproximadamente 0,25–0,35 s y el listado 0,39–0,67 s, frente a 29 ms de consulta paginada a MySQL y unos 2 ms de archivos estáticos. Con OPcache activo, las respuestas calientes del listado se midieron en aproximadamente 0,09–0,19 s. El script local habilita OPcache y `opcache.revalidate_freq=0` para desarrollo; hay que reiniciar el servidor tras regenerar `.local/php.ini`. Son mediciones históricas de ese entorno, no una garantía para otros equipos.
 
-Una comparación con el mismo proyecto y OPcache activo redujo las respuestas calientes del listado a aproximadamente 0,09–0,19 s. El script local ahora carga `php_opcache.dll`, activa `opcache.enable_cli` para el servidor PHP integrado y mantiene `opcache.revalidate_freq=0` para detectar cambios de código durante el desarrollo. Tras regenerar `.local/php.ini` es necesario reiniciar el proceso del servidor. Estos tiempos son mediciones de esta máquina y pueden variar con la carga del navegador y del sistema.
+## Verificación y límites documentales
 
-## Verificación
+Las pruebas Feature usan MySQL `star_wars_personajes_test`, `RefreshDatabase`, `Http::fake()` y `Http::preventStrayRequests()`. Cubren CRUD, paginación 10+1, límites, procedencia, transformación SWAPI, planeta opcional, duplicados, colisión UNIQUE y fallos externos. `npm run build` verifica los componentes Vue y `php artisan route:list --path=personajes` verifica el contrato de rutas. El README distingue los resultados históricos de la última ejecución; actualizar este archivo no ejecuta de nuevo esas pruebas.
 
-Las pruebas Feature corren en `star_wars_personajes_test` mediante MySQL y `RefreshDatabase`. `Http::fake()` y `Http::preventStrayRequests()` aíslan SWAPI. Cubren CRUD, rutas, paginación, límites, procedencia, transformación, duplicados, colisión UNIQUE y fallos externos. La compilación de Vite verifica los componentes Vue. Para resultados y comandos actuales, ver el README.
-
-## Fuentes de requisitos
-
-El PDF original de MAU prevalece. La exportación MODULA de proyecto `83195dda-d8ca-4e44-9c0f-84e5cbf79a07`, revisión 97, contiene 35 requisitos y 5 casos de uso vigentes aprobados; en todos coincide `approved_revision` con `revision`. Las revisiones históricas de la exportación no reemplazan esos elementos. El diseño técnico aportado guía decisiones de implementación cuando las dos fuentes anteriores no prescriben el detalle. La advertencia `RF-PER-015: sin caso de uso` no reduce el contrato de seis rutas CRUD.
+El diseño original v1.0 proponía `planeta_origen=null` sin segunda petición y tabla o tarjetas responsive. Esas decisiones fueron ampliadas posteriormente con planeta opcional, género `none`, galería, imágenes externas y avatar de respaldo. El diseño técnico completo y la evolución están explicados en [DISENO_TECNICO.md](DISENO_TECNICO.md). La advertencia histórica `RF-PER-015: sin caso de uso` no reduce las seis rutas CRUD.
